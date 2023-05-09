@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>XML Attribute Remover</title>
+  </head>
+  <body>
+    <h1>XML Attribute Remover</h1>
+    <form>
+      <label for="xml-file">Select an XML file to upload:</label>
+      <input type="file" id="xml-file" name="xml-file"><br>
+      <label for="attrs-to-remove">Attributes to remove (comma-separated):</label>
+      <input type="text" id="attrs-to-remove" name="attrs-to-remove"><br>
+      <input type="submit" value="Remove Attributes">
+    </form>
+    <div id="output"></div>
+    <script>
+      const form = document.querySelector('form');
+      const output = document.querySelector('#output');
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const xmlFile = document.querySelector('#xml-file').files[0];
+        const attrsToRemove = document.querySelector('#attrs-to-remove').value.split(',');
+
+        const reader = new FileReader();
+        reader.readAsText(xmlFile);
+        reader.onload = (event) => {
+          const xmlData = event.target.result;
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(xmlData, 'text/xml');
+
+          function removeAttrs(xmlDoc) {
+            const elements = xmlDoc.getElementsByTagName('*');
+            for (const element of elements) {
+              for (const attr of attrsToRemove) {
+                element.removeAttribute(attr.trim());
+              }
+            }
+          }
+          removeAttrs(xmlDoc);
+
+          const serializer = new XMLSerializer();
+          const xmlString = serializer.serializeToString(xmlDoc);
+          const downloadLink = document.createElement('a');
+          downloadLink.setAttribute('href', 'data:text/xml;charset=utf-8,' + encodeURIComponent(xmlString));
+          downloadLink.setAttribute('download', `${xmlFile.name}_updated.xml`);
+          downloadLink.innerHTML = 'Download updated XML file';
+          output.appendChild(downloadLink);
+        };
+      });
+    </script>
+  </body>
+</html>
